@@ -1,0 +1,109 @@
+name: Build Yocto Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: "start manually"
+        required: true
+        default: "yes"
+
+jobs:
+  build:
+    runs-on: self-hosted
+    env:
+      ORGANISATION_NAME: "emblincram"
+      CONTAINER_NAME: "devcon"
+      LAYER_NAME: "meta-emblincram"
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          clean: false
+          path: "yocto-src-${{ github.run_id }}"  # Neuer, eindeutiger Ordner
+
+      - name: Set Working Directory
+        run: |
+          echo "Using fresh Yocto source at: yocto-src-${{ github.run_id }}"
+          ln -sfn ${{ runner.workspace }}/yocto-src-${{ github.run_id }} ${{ runner.workspace }}/meta-pq-box
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull Yocto DevContainer Image
+        run: |
+          docker pull ghcr.io/$ORGANISATION_NAME/$CONTAINER_NAME:latest
+
+      - name: Run Install Script
+        run: |          
+          cd ${{ github.workspace }}
+          if [ ! -f install.sh ]; then
+            echo "Error: install.sh not found!"
+            exit 1
+          fi
+          chmod +x install.sh
+          GHCR_PAT=${{ secrets.GHCR_PAT }} ./install.sh
+          cd ..
+
+      - name: Run initialize-command.sh
+        run: |
+          cd ${{ runner.workspace }}
+          if [ ! -f $LAYER_NAME/toolbox/initialize-command.sh ]; then
+            echo "Error: initialize-command.sh not found!"
+            exit 1
+          fi
+          chmod +x $LAYER_NAME/toolbox/initialize-command.sh
+          ./$LAYER_NAME/toolbox/initialize-command.sh .
+
+      - name: Run Yocto Build
+        run: |
+          cd ${{ runner.workspace }}
+          docker run --rm \
+            -v ${{ runner.workspace }}/application:/home/yocto/app \
+            -v ${{ runner.workspace }}/build:/home/yocto/build \
+            -v ${{ runner.workspace }}/meta-arm:/home/yocto/meta-arm \
+            -v ${{ runner.workspace }}/meta-ti:/home/yocto/meta-ti \
+            -v ${{ runner.workspace }}/meta-openembedded:/home/yocto/meta-openembedded \
+            -v ${{ runner.workspace }}/$LAYER_NAME:/home/yocto/$LAYER_NAME \
+            -v ${{ runner.workspace }}/poky:/home/yocto/poky \
+            -v ${{ runner.workspace }}/sstate-cache:/home/yocto/sstate-cache \
+            -v ${{ runner.workspace }}/downloads:/home/yocto/downloads \
+            -w /home/yocto \
+            --user yocto \
+            ghcr.io/$ORGANISATION_NAME/$CONTAINER_NAME:latest /bin/bash -i -c "
+              mkdir -p ~/.ssh
+              echo '${{ secrets.SSH_KEY }}' > ~/.ssh/id_rsa
+              chmod 600 ~/.ssh/id_rsa
+              mkdir -p /home/yocto/downloads
+              mkdir -p /home/yocto/sstate-cache
+              sshfs -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST}:/home/rko/work/downloads /home/yocto/downloads
+              sshfs -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST}:/home/rko/work/sstate-cache /home/yocto/sstate-cache
+              echo 'YOCTO_SSTATE_DIR=/home/yocto/sstate-cache' >> /etc/environment
+              echo 'YOCTO_DL_DIR=/home/yocto/downloads' >> /etc/environment
+              source /etc/environment    
+              chown -R yocto:yocto /home/yocto
+              chmod +x $LAYER_NAME/toolbox/post-create-command.sh
+              ./$LAYER_NAME/toolbox/post-create-command.sh /home/yocto
+              source activate-env.sh
+              bitbake core-image-full-cmdline 2>&1 | tee build-log.txt
+              fusermount -u /home/yocto/sstate-cache || true
+              fusermount -u /home/yocto/downloads || true
+            "
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yocto-image
+          path: ${{ runner.workspace }}/build/deploy-ti/images/beagle-x15/core-image-full-cmdline-*.wic*
+          retention-days: 7
