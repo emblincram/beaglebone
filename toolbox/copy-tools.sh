@@ -41,15 +41,15 @@ for script in "${scripts[@]}"; do
     fi
 
     target_link="$TARGET_DIR/$script"
-    
+
     if [ -e "$target_link" ]; then
       echo "remove current link/file: $target_link"
       rm -f "$target_link"
     fi
 
     ln -s "$rel_path" "$target_link"
+    chmod +x "$target_link"
     echo "created: $target_link -> $rel_path"
-    
   else
     echo "skript $script not found in $SOURCE_DIR"
   fi

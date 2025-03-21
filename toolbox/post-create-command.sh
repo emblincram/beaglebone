@@ -32,6 +32,7 @@ fi
 
 # Project meta-layer
 clone_and_checkout "https://${GITHUB_TOKEN}@github.com/emblincram/meta-emblincram.git" "${WORKSPACE_PATH}/meta-emblincram" "main"
+clone_and_checkout "https://${GITHUB_TOKEN}@github.com/emblincram/meta-base-beagle.git" "${WORKSPACE_PATH}/meta-base-beagle" "main"
 
 # meta-pq-box applications
 create_directory "${WORKSPACE_PATH}/app"

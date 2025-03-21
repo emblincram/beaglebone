@@ -8,7 +8,7 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo ${BASE_DIR}
 
 # Konfigurationspfad setzen
-export TEMPLATECONF="${BASE_DIR}/meta-emblincram/conf/templates/default"
+export TEMPLATECONF="${BASE_DIR}/meta-base-beagle/conf/templates/default"
 echo "TEMPLATECONF=${TEMPLATECONF}"
 
 # Build-Umgebung initialisieren
