@@ -1,0 +1,11 @@
+Welcome to the A.Eberle Yocto buildsystem.
+Copyright (c) 2025 A.Eberle GmbH & Co.KG
+
+Before building for the first time, you should take a look in the main
+configuration file 'conf/local.conf'. There you can tweak the build system
+settings and license configuration.
+
+Tested build target for this build configuration is:
+
+	$ bitbake core-image-full-cmdline
+

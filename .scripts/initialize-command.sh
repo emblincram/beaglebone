@@ -14,12 +14,16 @@ if [ "$#" -ne 1 ]; then
 fi
 
 WORKSPACE_PATH=$1
+YOCTO_SHARED_DIR=${WORKSPACE_PATH}/../../yocto-shared
 
 source ~/.bashrc
 
-create_directory "${WORKSPACE_PATH}/../../downloads"
-create_directory "${WORKSPACE_PATH}/../../sstate-cache"
+create_directory "${YOCTO_SHARED_DIR}/downloads"
+create_directory "${YOCTO_SHARED_DIR}/sstate-cache"
 create_directory "${WORKSPACE_PATH}/build"
 
-export YOCTO_SSTATE_DIR="${WORKSPACE_PATH}/../../downloads"
-export YOCTO_DL_DIR="${WORKSPACE_PATH}/../../sstate-cache"
+# check directories
+export YOCTO_DL_DIR="${YOCTO_SHARED_DIR}/downloads"
+export YOCTO_SSTATE_DIR="${YOCTO_SHARED_DIR}/sstate-cache"
+
+git config --global --add safe.directory '*'

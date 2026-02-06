@@ -25,7 +25,7 @@ fi
 scripts=(
 flash_emmc.sh
 flash_sd-card.sh
-install_sdk.sh
+install-sdk.sh
 prepare_sd_card.sh
 save_config.sh
 utilities.sh

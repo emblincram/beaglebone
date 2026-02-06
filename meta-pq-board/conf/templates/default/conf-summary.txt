@@ -1,0 +1,2 @@
+This is the default build configuration for the Yocto reference distribution.
+

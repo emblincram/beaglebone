@@ -8,6 +8,7 @@ BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo ${BASE_DIR}
 TARGET_DIR="${BASE_DIR}/../sdk/"
 
+# Suche nach der passenden SDK-Installationsdatei
 ENV_FILE=$(find "$TARGET_DIR" -type f -name "environment-setup-*" | head -n 1)
 
 if [ -z "$ENV_FILE" ]; then

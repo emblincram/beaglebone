@@ -6,7 +6,7 @@
 
 # ATTENTION: DEMO ONLY
 
-IMAGES_DIR="deploy-ti/images/beaglebone/" # Pfad zu den Yocto-Images
+IMAGES_DIR="deploy-ti/images/beagle-x15/" # Pfad zu den Yocto-Images
 OUTPUT_DIR="sd-card/" # Zielordner für entpackte Dateien
 
 if [ ! -d "$IMAGES_DIR" ]; then

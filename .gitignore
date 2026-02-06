@@ -32,3 +32,13 @@
 *.app
 
 build
+app
+downloads
+logs
+meta-arm
+meta-openembedded
+meta-pq-box
+meta-ti
+poky
+sstate-cache
+

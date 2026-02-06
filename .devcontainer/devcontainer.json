@@ -1,17 +1,32 @@
 {
   "name": "minimal dev-container",
-  "image": "ghcr.io/emblincram/devcon-mini:latest",
+  "image": "ghcr.io/a-eberle/devcon-pq-min:latest",
   "workspaceFolder": "/home/yocto",
   "remoteUser": "yocto",
   "containerEnv": {
-    "YOCTO_SSTATE_DIR": "${localEnv:YOCTO_SSTATE_DIR}",
-    "YOCTO_DL_DIR":     "${localEnv:YOCTO_DL_DIR}",
-    "CR_PAT":           "${localEnv:CR_PAT}"
+    "YOCTO_SSTATE_DIR": "/home/yocto/sstate-cache",
+    "YOCTO_DL_DIR":     "/home/yocto/downloads",
+    "YOCTO_LOGS_DIR":   "/home/yocto/logs",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
   },
   "extensions": [
     "ms-vscode.cpptools",
     "eamodio.gitlens",
-    "ms-python.python"
+    "ms-python.python",
+    "yocto-project.yocto-bitbake"
+  ],
+  "remoteEnv": {
+    "GIT_SSH_COMMAND": "ssh -i /home/yocto/.ssh/id_rsa"
+  },
+  "runArgs": [
+    "--device", "/dev/sda",
+    "--device", "/dev/sdb",
+    "--device", "/dev/sdc",
+    "--device", "/dev/sdd",
+    "--device", "/dev/sde",
+    "--privileged",
+    "--env", "SSH_AUTH_SOCK=${env:SSH_AUTH_SOCK}",
+    "--volume", "${env:SSH_AUTH_SOCK}:${env:SSH_AUTH_SOCK}"
   ],
   "settings": {
     "terminal.integrated.defaultProfile.linux": "bash"
@@ -46,13 +61,19 @@
       }
     }
   },
-  "initializeCommand": "${localWorkspaceFolder}/toolbox/initialize-command.sh ${localWorkspaceFolder}",
+  "initializeCommand": "${localWorkspaceFolder}/.scripts/initialize-command.sh ${localWorkspaceFolder}",
   "mounts": [
-    "source=${localWorkspaceFolder}/toolbox,target=/home/yocto/toolbox,type=bind",
+    "type=bind,source=${env:HOME}/.gitconfig,target=/home/yocto/.gitconfig",
+    "type=bind,source=${env:HOME}/.git-credentials,target=/home/yocto/.git-credentials",
+    "type=bind,source=${env:HOME}/.ssh,target=/home/yocto/.ssh",
+    "type=bind,source=${localWorkspaceFolder}/.gitignore,target=/home/yocto/.gitignore,readonly",
+    "source=${localWorkspaceFolder}/meta-pq-board,target=/home/yocto/meta-pq-board,type=bind",
+    "source=${localWorkspaceFolder}/.scripts,target=/home/yocto/.scripts,type=bind",
     "source=${localWorkspaceFolder}/build,target=/home/yocto/build,type=bind",
-    "source=${localWorkspaceFolder}/../../downloads,target=/home/yocto/downloads,type=bind",
-    "source=${localWorkspaceFolder}/../../sstate-cache,target=/home/yocto/sstate-cache,type=bind"
+    "source=${localEnv:YOCTO_LOGS_DIR},target=/home/yocto/logs,type=bind",
+    "source=${localEnv:YOCTO_SSTATE_DIR},target=/home/yocto/sstate-cache,type=bind",
+    "source=${localEnv:YOCTO_DL_DIR},target=/home/yocto/downloads,type=bind"
   ],
-  "postCreateCommand": "/home/yocto/toolbox/post-create-command.sh /home/yocto",
+  "postCreateCommand": "/home/yocto/.scripts/post-create-command.sh /home/yocto",
   "shutdownAction": "stopContainer"
 }

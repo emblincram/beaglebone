@@ -14,6 +14,7 @@ SDK_DIR="${CURRENT_DIR}/deploy-ti/sdk/"
 TARGET_DIR="${CURRENT_DIR}/../sdk"
 #SDK_NAME="poky-glibc-x86_64-core-image-full-cmdline-armv7at2hf-neon-beaglebone-toolchain-4.0.24"
 
+# Suche nach der passenden SDK-Installationsdatei
 SDK_FILE=$(find "$SDK_DIR" -type f -name "poky-*.sh" | head -n 1)
 
 if [ -z "$SDK_FILE" ]; then
@@ -21,5 +22,8 @@ if [ -z "$SDK_FILE" ]; then
     exit 1
 fi
 
+# Backup des TARGET_DIR falls vorhanden
 backup_existing_dir "$TARGET_DIR"
+
+# Installiere das SDK
 "${SDK_FILE}" -d "${TARGET_DIR}"
